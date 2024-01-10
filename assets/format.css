@@ -1,0 +1,17 @@
+.container {
+	float: center;
+	margin-left: 5%;
+	margin-right: 5%;
+}
+
+.column {
+	float: left;
+	width: 50%;
+	/* background-color: coral; */
+}
+
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
