@@ -2,7 +2,7 @@ import plotly.graph_objects as go # or plotly.express as px
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import pandas as pd
 from datetime import datetime
 import re
@@ -10,6 +10,7 @@ import numpy as np
 
 
 data_dir = 'd:/Katalog 1/Projekty/Weather/data/'
+data_dir = ''
 latlon = pd.read_csv(data_dir + 'latlon.csv')
 
 df = pd.read_csv(data_dir + 'all.csv')
@@ -85,6 +86,7 @@ fig.update_layout(
 
 
 app = dash.Dash(__name__)
+server = app.server
 app.layout = html.Div(
     className = 'container',
     children = [
@@ -121,23 +123,32 @@ app.layout = html.Div(
 def display_selected_data(selected_data):
     if selected_data is not None:
         selected_points = selected_data['points']
-        return f"Selected points: {[point['text'] for point in selected_points]}"
+        miasta = [point['text'] for point in selected_points]
+        return f"Selected points: {miasta}"
     else:
-        return "No points selected"
+        return 'All cities selected'
+        
         
         
 @app.callback(
     Output('main-plot-area', 'children'),
-    [Input('plot-button', 'n_clicks')]
+    [Input('plot-button', 'n_clicks')],
+    [State('scatter-plot', 'selectedData')]
 )
-def update_plot(n_clicks):
+def update_plot(n_clicks, selected_data):
     if n_clicks is None:
         return dash.no_update
     else:
         # Call the create_plot function and return the figure
-        fig = yearly_figure(['OLECKO'], [1, 2, 11, 12])
+        if selected_data is not None:
+            selected_points = selected_data['points']
+            miasta = [point['text'] for point in selected_points]
+        else:
+            miasta = df['name'].values
+        
+        fig = yearly_figure(miasta, [1, 2, 11, 12])
         return dcc.Graph(figure=fig)
         
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=3030)
+    app.run_server(debug=True, port=8050, host="0.0.0.0", use_reloader=False)
