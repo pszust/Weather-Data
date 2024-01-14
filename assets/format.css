@@ -1,13 +1,13 @@
 .container {
 	float: center;
-	margin-left: 5%;
-	margin-right: 5%;
+	margin-left: 10%;
+	margin-right: 10%;
 }
 
 .column {
 	float: left;
 	width: 50%;
-	/* background-color: coral; */
+	background-color: rgb(255, 154, 118);
 }
 
 .row:after {
