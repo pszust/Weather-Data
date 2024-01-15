@@ -4,14 +4,14 @@
 	margin-right: 10%;
 }
 
-.column {
-	float: left;
-	width: 50%;
-	background-color: rgb(255, 154, 118);
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
-.row:after {
-	content: "";
-	display: table;
-	clear: both;
+.column {
+	float: left;
+	padding: 0.5%;
 }
