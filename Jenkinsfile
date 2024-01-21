@@ -20,6 +20,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
+                    sh 'docker system prune -f'
                     // Push the Docker image to your Docker registry or deploy it directly
                     sh 'docker run -d --name dash-app -p 8050:8050 dash-img'
                 }
