@@ -1,6 +1,6 @@
 # Historical weather data in Poland
 This is a simple web app that enables plotting historical weather data collected over last 70-years by IMGW (https://danepubliczne.imgw.pl/). It allows plotting data such as daily min, mean and max temperature, sum of daily precipitation and maximal snow depth, aggregated over selected periods. The site is currently available in Polish language only.
-The live demo of the application is currently deployed on Amazon AWS, available at: http://ec2-18-213-170-253.compute-1.amazonaws.com:8050/
+The live demo of the application is currently deployed on Amazon AWS, available [here](http://ec2-18-213-170-253.compute-1.amazonaws.com:8050/) 
 
 # Explore the climate in Poland
 ![app image](desc/desc_img01.png)
