@@ -12,6 +12,7 @@ pipeline {
             steps {
                 script {
                     // Build and Dockerize your Dash app
+                    sh 'docker system prune -f'
                     sh 'docker build -t dash-img .'
                 }
             }
@@ -20,7 +21,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh 'docker system prune -f'
                     // Push the Docker image to your Docker registry or deploy it directly
                     sh 'docker run -d --name dash-app -p 8050:8050 dash-img'
                 }
