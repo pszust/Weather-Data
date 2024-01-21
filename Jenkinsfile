@@ -12,7 +12,7 @@ pipeline {
             steps {
                 script {
                     // Build and Dockerize your Dash app
-                    sh 'sudo docker system prune -f'
+                    sh 'docker system prune -f'
                     sh 'docker build -t dash-img .'
                 }
             }
