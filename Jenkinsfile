@@ -4,15 +4,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout scm  // pulls code from repo
             }
         }
 
         stage('Build and Dockerize') {
             steps {
                 script {
-                    // Build and Dockerize your Dash app
-                    sh 'docker system prune -f'
+                    sh 'docker stop $(docker ps -a -q)'  // stop any running containers 
+                    sh 'docker system prune -f'  // remove existing containers
                     sh 'docker build -t dash-img .'
                 }
             }
@@ -21,8 +21,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Push the Docker image to your Docker registry or deploy it directly
-                    sh 'docker run -d --name dash-app -p 8050:8050 dash-img'
+                    sh 'docker run -d --name dash-app -p 8050:8050 dash-img'  // create and start the container 
                 }
             }
         }

@@ -48,16 +48,17 @@ Dane będą pochodzić z zaznaczonych przez użytkownika konkretnych stacji
 pogodowych na mapie, co umożliwi jeszcze dokładniejszą personalizację analizy klimatu według 
 preferencji i lokalnych warunków atmosferycznych.
 """
-
-# read data from static csv files
-data_dir = 'd:/Katalog 1/Projekty/Weather/data/'
-data_dir = ''
-latlon = pd.read_csv(data_dir + 'latlon.csv')
-df = pd.read_csv(data_dir + 'all.csv')
-df['date'] = df['date'].apply(lambda row: datetime.strptime(row, '%Y-%m-%d'))
-df['month'] = df['date'].apply(lambda row: row.month)
-df['year'] = df['date'].apply(lambda row: row.year)
-
+attributionText = '''
+Dane meteorologiczne i hydrologiczne pochodzą z Instytutu Meteorologii i Gospodarki Wodnej – Państwowego Instytutu Badawczego (IMGW-PIB).
+Właściciel danych: Skarb Państwa
+Udostępniający: IMGW-PIB
+Podstawy prawne: Ustawa z dnia 11 sierpnia 2021 r. o otwartych danych i Prawo wodne z 20 lipca 2017 r.
+Prawo do ponownego wykorzystania: Przysługuje każdemu użytkownikowi zgodnie z regulaminem.
+Dostęp do danych: https://danepubliczne.imgw.pl/ i www.meteo.imgw.pl. Dodatkowe dane na wniosek.
+Korzystanie z danych: Zgodnie z technicznymi możliwościami IMGW-PIB.
+Zakres udostępniania: Obejmuje dane publiczne, wyłączając te stworzone poza zadaniami publicznymi.
+Oferta i akceptacja: Regulamin to oferta; akceptacja przez korzystanie z danych.
+Dodatkowe dokumenty: Mapy stacji pomiarowych https://hydro.imgw.pl/, wzór wniosku https://danepubliczne.imgw.pl/.'''
 
 def yearly_figure(cities, selectedMonths, dataType, trendline=None):
     # select data and calculate mean and std
@@ -93,31 +94,42 @@ def yearly_figure(cities, selectedMonths, dataType, trendline=None):
 
     x = list(data.index)
 
-    # error bars
-    y_upper = list(data['mean'] + data['std'])
-    y_lower = list(data['mean'] - data['std'])
-    t = go.Scatter(
-        x=x + x[::-1],  # x, then x reversed
-        y=y_upper + y_lower[::-1],  # upper, then lower reversed
-        fill='toself',
-        fillcolor='rgba(79, 99, 90, 0.2)',
-        line=dict(color='rgba(255,255,255,0)'),
-        hoverinfo="skip",
-        showlegend=False)
-    fig.add_trace(t)
-
-    t = go.Scatter(x=x, y=data['mean'], mode='lines', name='średnia roczna')
-    fig.add_trace(t)
-
-    if trendline:
-        data['roll'] = data['mean'].rolling(window=trendline).mean()
-        t = go.Scatter(x=x,
-                       y=data['roll'],
-                       mode='lines',
-                       name=f'średnia {trendline}-letnia',
-                       line=dict(dash='dash', width=2,
-                                 color='rgb(40, 40, 40)'))
+    # make bar or scatter (line) plot dependind on data type
+    if dataType in ['prec', 'snow']:
+        t = go.Bar(
+            x=x,
+            y=data['mean'],
+            name='średnia roczna',
+            width=1,
+            marker_line={'width': 1})
         fig.add_trace(t)
+    else:
+        # error bars
+        y_upper = list(data['mean'] + data['std'])
+        y_lower = list(data['mean'] - data['std'])
+        t = go.Scatter(
+            x=x + x[::-1],  # x, then x reversed
+            y=y_upper + y_lower[::-1],  # upper, then lower reversed
+            fill='toself',
+            fillcolor='rgba(79, 99, 90, 0.2)',
+            line=dict(color='rgba(255,255,255,0)'),
+            hoverinfo="skip",
+            showlegend=False)
+        fig.add_trace(t)
+
+        t = go.Scatter(x=x, y=data['mean'],
+                       mode='lines', name='średnia roczna')
+        fig.add_trace(t)
+
+        if trendline:
+            data['roll'] = data['mean'].rolling(window=trendline).mean()
+            t = go.Scatter(x=x,
+                           y=data['roll'],
+                           mode='lines',
+                           name=f'średnia {trendline}-letnia',
+                           line=dict(dash='dash', width=2,
+                                     color='rgb(40, 40, 40)'))
+            fig.add_trace(t)
 
     fig['layout']['title'] = title
     #     fig['layout']['title_x'] = 0.5
@@ -163,29 +175,40 @@ def monthly_figure(cities, selectedYears, dataType, trendline=None):
         color = plt.get_cmap('gist_rainbow')(i / len(selectedYears))
         # plot std
         x = list(dataPeriod.index)
-        if len(selectedYears) <= 2:
-            y_upper = list(dataPeriod['mean'] + dataPeriod['std'])
-            y_lower = list(dataPeriod['mean'] - dataPeriod['std'])
-            t = go.Scatter(
-                x=x + x[::-1],  # x, then x reversed
-                y=y_upper + y_lower[::-1],  # upper, then lower reversed
-                fill='toself',
-                fillcolor='rgba(' +
-                ','.join(str(int(255 * c)) for c in color[:3]) + ',0.1)',
-                line=dict(color='rgba(255,255,255,0)'),
-                hoverinfo="skip",
-                showlegend=False)
-            fig.add_trace(t)
 
-        # plot mean
-        t = go.Scatter(
-            x=x,
-            y=dataPeriod['mean'],
-            mode='lines',
-            name=f'{period[0]}-{period[1]}',
-            line=dict(color='rgb(' +
-                      ','.join(str(int(255 * c)) for c in color[:3]) + ')'))
-        fig.add_trace(t)
+        # make bar or scatter (line) plot dependind on data type
+        if dataType in ['prec', 'snow']:
+            t = go.Bar(
+                x=x,
+                y=dataPeriod['mean'],
+                name=f'{period[0]}-{period[1]}',
+                width=1,
+                marker_line={'width': 1})
+            fig.add_trace(t)
+        else:
+            if len(selectedYears) <= 2:
+                y_upper = list(dataPeriod['mean'] + dataPeriod['std'])
+                y_lower = list(dataPeriod['mean'] - dataPeriod['std'])
+                t = go.Scatter(
+                    x=x + x[::-1],  # x, then x reversed
+                    y=y_upper + y_lower[::-1],  # upper, then lower reversed
+                    fill='toself',
+                    fillcolor='rgba(' +
+                    ','.join(str(int(255 * c)) for c in color[:3]) + ',0.1)',
+                    line=dict(color='rgba(255,255,255,0)'),
+                    hoverinfo="skip",
+                    showlegend=False)
+                fig.add_trace(t)
+
+            # plot mean
+            t = go.Scatter(
+                x=x,
+                y=dataPeriod['mean'],
+                mode='lines',
+                name=f'{period[0]}-{period[1]}',
+                line=dict(color='rgb(' +
+                          ','.join(str(int(255 * c)) for c in color[:3]) + ')'))
+            fig.add_trace(t)
 
     fig['layout']['title'] = title
     #     fig['layout']['title_x'] = 0.5
@@ -292,8 +315,42 @@ def make_map_chart():
         # paper_bgcolor="LightSteelBlue",
     )
     return fig
+    fig = go.Figure(
+        go.Scattergeo(lat=latlon['lat'],
+                      lon=latlon['lon'],
+                      text=latlon['name']))
+    fig.update_geos(resolution=50,
+                    showcoastlines=True,
+                    coastlinecolor="RebeccaPurple",
+                    showland=True,
+                    landcolor="LightGreen",
+                    showocean=True,
+                    oceancolor="LightBlue",
+                    showlakes=True,
+                    lakecolor="Blue",
+                    showrivers=True,
+                    rivercolor="Blue",
+                    showcountries=True,
+                    projection_type="mercator")
+    fig['layout']['geo']['center']['lat'] = 52
+    fig['layout']['geo']['center']['lon'] = 19
+    rng = 5
+    fig['layout']['geo']['lonaxis'] = dict(range=[-rng, rng])
+    fig['layout']['geo']['lataxis'] = dict(range=[-rng, rng])
+    fig['layout']['dragmode'] = 'lasso'
+    fig.update_layout(
+        # autosize=False,
+        # width=400,
+        # height=400,
+        margin=dict(l=0, r=0, b=0, t=0, pad=0),
+        # paper_bgcolor="LightSteelBlue",
+    )
+    return fig
 
 
+# read data from static csv files
+df = pd.read_parquet('all.parquet')
+latlon = pd.read_csv('latlon.csv')
 mapPlot = make_map_chart()
 
 app = dash.Dash(__name__, prevent_initial_callbacks='initial_duplicate')
@@ -307,7 +364,8 @@ app.layout = html.Div(
             children=[
                 html.H1('Historyczne dane pogodowe'),
                 html.Br(),
-                html.P(introText)
+                html.P(introText),
+                html.P(attributionText)
             ]
         ),
         html.Div(
@@ -318,7 +376,12 @@ app.layout = html.Div(
                 html.P('Aby wybrać stacje pogodowe, zaznacz je na mapie metodą na \'lasso\'. Podwójne klinknięcie zaznacza'
                        ' wszystkie stacje. Uwaga: kopletność danych nie jest pełna dla każdej stacji.'),
                 dcc.Graph(figure=mapPlot, style={
-                    'width': '100%'}, id='scatter-plot')
+                    'width': '100%'}, id='scatter-plot'),
+                html.Br(),
+                html.Div(id='selected-points-output'),
+                html.Br(),
+                html.Br(),
+                html.Br()
             ]
         ),
         html.Div(
@@ -397,17 +460,16 @@ app.layout = html.Div(
                 dcc.RadioItems(
                     options={'tmin': 'T-min', 'tmax': 'T-max', 'tmean': 'T-średnia', 'prec': 'Opady', 'tmin_grnd': 'T-min-grunt', 'snow': 'Pokrywa śnieżna'}, inline=True, value='tmean', id='data-type-selector'
                 ),
-                html.Br(),
-                html.Div(id='selected-points-output')
+                html.Br()
             ]
         ),
         html.Div(
             className='column',
-            style={'width': '100%', 'height': '500px'},
+            style={'width': '74%', 'height': '500px'},
             children=[
                 # html.Div(id='main-plot-area', style={'width': '50%', 'margin': 'auto', 'height': '500px'})
                 dcc.Graph(
-                    id='main-plot-area', style={'width': '65%', 'aspect-ratio': '1.90', 'margin': 'auto'})
+                    id='main-plot-area', style={'width': '100%', 'aspect-ratio': '1.90', 'margin': 'auto'})
             ]
         )
     ]
